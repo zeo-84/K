@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامه تنفس - ریلکس کف لگن</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+        
+        /* دایره تنفس */
+        .breath-circle-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .breath-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 100%);
+            box-shadow: 0 0 60px rgba(255,255,255,0.4), 0 0 120px rgba(255,255,255,0.2);
+            transition: transform 0.3s ease;
+            position: absolute;
+        }
+        
+        .breath-circle.inhale {
+            animation: inhale 4s ease-in-out forwards;
+        }
+        
+        .breath-circle.hold-in {
+            transform: scale(1.8);
+        }
+        
+        .breath-circle.exhale {
+            animation: exhale 6s ease-in-out forwards;
+        }
+        
+        .breath-circle.hold-out {
+            transform: scale(1);
+        }
+        
+        @keyframes inhale {
+            from { transform: scale(1); }
+            to { transform: scale(1.8); }
+        }
+        
+        @keyframes exhale {
+            from { transform: scale(1.8); }
+            to { transform: scale(1); }
+        }
+        
+        .phase-text {
+            position: absolute;
+            font-size: 1.8rem;
+            font-weight: 700;
+            z-index: 10;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .timer-text {
+            position: absolute;
+            bottom: -40px;
+            font-size: 1rem;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+        
+        /* اطلاعات */
+        .info-panel {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+        
+        .info-box {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 12px 15px;
+            flex: 1;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .info-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        /* پیام راهنما */
+        .guide-message {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            border: 1px solid rgba(255,255,255,0.15);
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* دکمه‌ها */
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #764ba2;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* تنظیمات الگو */
+        .pattern-selector {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .pattern-btn {
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .pattern-btn.active {
+            background: white;
+            color: #764ba2;
+            font-weight: 700;
+        }
+        
+        /* نوار پیشرفت */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 3px;
+            transition: width 1s linear;
+            width: 0%;
+        }
+        
+        /* صفحه شروع */
+        .start-screen {
+            text-align: center;
+        }
+        
+        .start-screen .features {
+            text-align: right;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            line-height: 2;
+        }
+        
+        .start-screen .features li {
+            list-style: none;
+            padding-right: 25px;
+            position: relative;
+        }
+        
+        .start-screen .features li::before {
+            content: "✓";
+            position: absolute;
+            right: 0;
+            color: #90EE90;
+            font-weight: bold;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* انیمیشن پس‌زمینه */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            animation: float 20s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-100px) translateX(50px); }
+            50% { transform: translateY(-50px) translateX(-30px); }
+            75% { transform: translateY(-150px) translateX(20px); }
+        }
+        
+        /* ریسپانسیو */
+        @media (max-width: 400px) {
+            .breath-circle-container {
+                width: 240px;
+                height: 240px;
+            }
+            .breath-circle {
+                width: 120px;
+                height: 120px;
+            }
+            h1 { font-size: 1.3rem; }
+            .phase-text { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ذرات پس‌زمینه -->
+    <div class="bg-particles" id="particles"></div>
+    
+    <div class="container">
+        <!-- صفحه شروع -->
+        <div id="startScreen" class="start-screen">
+            <h1>🧘 برنامه تنفس آرامش‌بخش</h1>
+            <p class="subtitle">15 دقیقه تمرین برای ریلکس کردن کف لگن</p>
+            
+            <ul class="features">
+                <li>بهبود جریان خون و نعوظ</li>
+                <li>کاهش سفتی عضلات لگن</li>
+                <li>کنترل بهتر انزال</li>
+                <li>فعال‌سازی سیستم عصبی آرامش</li>
+                <li>کاهش استرس و اضطراب</li>
+            </ul>
+            
+            <div class="pattern-selector">
+                <button class="pattern-btn active" data-pattern="relax">
+                    ریلکس (4-2-6-2)
+                </button>
+                <button class="pattern-btn" data-pattern="deep">
+                    عمیق (4-4-6-2)
+                </button>
+                <button class="pattern-btn" data-pattern="calm478">
+                    4-7-8 آرامش
+                </button>
+                <button class="pattern-btn" data-pattern="box">
+                    جعبه‌ای (4-4-4-4)
+                </button>
+            </div>
+            
+            <button class="btn btn-primary" id="startBtn">
+                ▶ شروع تمرین
+            </button>
+        </div>
+        
+        <!-- صفحه تمرین -->
+        <div id="exerciseScreen" class="hidden">
+            <h1 id="patternName">الگوی ریلکس</h1>
+            <p class="subtitle">روی تنفس و ریلکس کردن کف لگن تمرکز کن</p>
+            
+            <!-- نوار پیشرفت -->
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <!-- دایره تنفس -->
+            <div class="breath-circle-container">
+                <div class="breath-circle" id="breathCircle"></div>
+                <div class="phase-text" id="phaseText">آماده</div>
+                <div class="timer-text" id="phaseTimer">0s</div>
+            </div>
+            
+            <!-- اطلاعات -->
+            <div class="info-panel">
+                <div class="info-box">
+                    <div class="info-label">زمان باقی‌مانده</div>
+                    <div class="info-value" id="totalTimer">15:00</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">چرخه</div>
+                    <div class="info-value" id="cycleCount">0</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">فاز</div>
+                    <div class="info-value" id="phaseName">-</div>
+                </div>
+            </div>
+            
+            <!-- پیام راهنما -->
+            <div class="guide-message" id="guideMessage">
+                آماده شروع... نفس عمیق بکش و آرام باش
+            </div>
+            
+            <!-- دکمه‌ها -->
+            <div class="controls">
+                <button class="btn btn-secondary" id="pauseBtn">⏸ توقف</button>
+                <button class="btn btn-secondary" id="resetBtn">↺ شروع مجدد</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // الگوهای تنفس
+        const patterns = {
+            relax: {
+                name: 'الگوی ریلکس (4-2-6-2)',
+                inhale: 4,
+                holdIn: 2,
+                exhale: 6,
+                holdOut: 2,
+                messages: {
+                    inhale: '️ دم از بینی - شکم رو باد کن، کف لگن رو شل کن',
+                    holdIn: '⏸️ آرام حبس کن - بدون فشار',
+                    exhale: '💨 بازدم از دهان - کاملاً ریلکس کن',
+                    holdOut: '🧘 مکث - آرامش کامل'
+                }
+            },
+            deep: {
+                name: 'الگوی عمیق (4-4-6-2)',
+                inhale: 4,
+                holdIn: 4,
+                exhale: 6,
+                holdOut: 2,
+                messages: {
+                    inhale: '🌬️ دم عمیق - هوا رو به پایین شکم بفرست',
+                    holdIn: '⏸️ نگه دار - اکسیژن رو جذب کن',
+                    exhale: '💨 بازدم طولانی - تنش رو بیرون بده',
+                    holdOut: '🧘 استراحت - بدنت رو رها کن'
+                }
+            },
+            calm478: {
+                name: 'الگوی 4-7-8 آرامش',
+                inhale: 4,
+                holdIn: 7,
+                exhale: 8,
+                holdOut: 0,
+                messages: {
+                    inhale: '🌬️ دم آرام از بینی (4 ثانیه)',
+                    holdIn: '⏸️ حبس نفس (7 ثانیه) - آرام باش',
+                    exhale: ' بازدم کامل از دهان (8 ثانیه)',
+                    holdOut: ''
+                }
+            },
+            box: {
+                name: 'تنفس جعبه‌ای (4-4-4-4)',
+                inhale: 4,
+                holdIn: 4,
+                exhale: 4,
+                holdOut: 4,
+                messages: {
+                    inhale: '🌬️ دم یکنواخت (4 ثانیه)',
+                    holdIn: '️ حبس (4 ثانیه)',
+                    exhale: '💨 بازدم یکنواخت (4 ثانیه)',
+                    holdOut: '🧘 مکث (4 ثانیه)'
+                }
+            }
+        };
+        
+        let currentPattern = 'relax';
+        let totalTime = 15 * 60; // 15 دقیقه به ثانیه
+        let remainingTime = totalTime;
+        let currentCycle = 0;
+        let isRunning = false;
+        let isPaused = false;
+        let currentPhase = '';
+        let phaseTimer = null;
+        let totalTimer = null;
+        let phaseTimeLeft = 0;
+        
+        // ایجاد ذرات پس‌زمینه
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 100 + 50;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        // انتخاب الگو
+        document.querySelectorAll('.pattern-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentPattern = this.dataset.pattern;
+            });
+        });
+        
+        // شروع تمرین
+        document.getElementById('startBtn').addEventListener('click', startExercise);
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        document.getElementById('resetBtn').addEventListener('click', resetExercise);
+        
+        function startExercise() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('exerciseScreen').classList.remove('hidden');
+            document.getElementById('patternName').textContent = patterns[currentPattern].name;
+            
+            isRunning = true;
+            isPaused = false;
+            remainingTime = totalTime;
+            currentCycle = 0;
+            
+            startTotalTimer();
+            runPhase('inhale');
+        }
+        
+        function startTotalTimer() {
+            totalTimer = setInterval(() => {
+                if (!isPaused) {
+                    remainingTime--;
+                    updateTotalTimer();
+                    updateProgress();
+                    
+                    if (remainingTime <= 0) {
+                        finishExercise();
+                    }
+                }
+            }, 1000);
+        }
+        
+        function runPhase(phase) {
+            if (!isRunning || isPaused) return;
+            
+            const pattern = patterns[currentPattern];
+            currentPhase = phase;
+            
+            let duration;
+            switch(phase) {
+                case 'inhale': duration = pattern.inhale; break;
+                case 'holdIn': duration = pattern.holdIn; break;
+                case 'exhale': duration = pattern.exhale; break;
+                case 'holdOut': duration = pattern.holdOut; break;
+            }
+            
+            if (duration === 0) {
+                nextPhase(phase);
+                return;
+            }
+            
+            phaseTimeLeft = duration;
+            updatePhaseUI(phase, duration);
+            
+            phaseTimer = setInterval(() => {
+                if (!isPaused) {
+                    phaseTimeLeft--;
+                    document.getElementById('phaseTimer').textContent = phaseTimeLeft + 's';
+                    
+                    if (phaseTimeLeft <= 0) {
+                        clearInterval(phaseTimer);
+                        nextPhase(phase);
+                    }
+                }
+            }, 1000);
+        }
+        
+        function nextPhase(currentPhaseName) {
+            const order = ['inhale', 'holdIn', 'exhale', 'holdOut'];
+            const currentIndex = order.indexOf(currentPhaseName);
+            const nextIndex = (currentIndex + 1) % order.length;
+            
+            if (nextIndex === 0) {
+                currentCycle++;
+                document.getElementById('cycleCount').textContent = currentCycle;
+            }
+            
+            runPhase(order[nextIndex]);
+        }
+        
+        function updatePhaseUI(phase, duration) {
+            const circle = document.getElementById('breathCircle');
+            const phaseText = document.getElementById('phaseText');
+            const phaseName = document.getElementById('phaseName');
+            const guideMessage = document.getElementById('guideMessage');
+            const pattern = patterns[currentPattern];
+            
+            // حذف کلاس‌های قبلی
+            circle.className = 'breath-circle';
+            
+            const phaseNames = {
+                inhale: 'دم',
+                holdIn: 'حبس',
+                exhale: 'بازدم',
+                holdOut: 'مکث'
+            };
+            
+            phaseText.textContent = phaseNames[phase];
+            phaseName.textContent = phaseNames[phase];
+            document.getElementById('phaseTimer').textContent = duration + 's';
+            guideMessage.textContent = pattern.messages[phase];
+            
+            // اعمال انیمیشن
+            setTimeout(() => {
+                circle.classList.add(phase);
+            }, 50);
+        }
+        
+        function updateTotalTimer() {
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            document.getElementById('totalTimer').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        function updateProgress() {
+            const progress = ((totalTime - remainingTime) / totalTime) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+        
+        function togglePause() {
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').textContent = isPaused ? '▶ ادامه' : ' توقف';
+            
+            const circle = document.getElement
